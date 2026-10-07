@@ -1,0 +1,17 @@
+{
+  "name": "image-round-corner",
+  "version": "1.4.0",
+  "private": true,
+  "description": "图片批量加圆角 - 为图片添加抗锯齿圆角，多图批量处理",
+  "main": "main.js",
+  "engines": {
+    "node": ">=16.0"
+  },
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "@jsquash/webp": "^1.5.0",
+    "jimp": "^0.22.0"
+  }
+}

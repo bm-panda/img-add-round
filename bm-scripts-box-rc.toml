@@ -1,0 +1,73 @@
+[bmscriptsbox]
+
+[bmscriptsbox.info]
+id = "7f9b3c2d-1e5a-4b8c-9d0e-6f1a7b2c3d4e"
+name = "图片加圆角"
+desc = "图片批量加圆角 | 抗锯齿圆角、半径可调、实时预览、多图批量、输出目录与文件名后缀可配置 | 支持右键/快捷键/卡片触发，可被其他脚本联动调用，一键批量输出到指定目录或源图片目录"
+version = "1.4.0"
+icon = "./imgs/logo.png"
+
+[bmscriptsbox.runtime]
+language = "node.js"
+language_version = ">=v16.0"
+entry = "main.js"
+terminal = "never"
+binaries = [{name = "webview-cli"}]
+
+[bmscriptsbox.triggers.context_menu]
+enabled = true
+targets = ["files"]
+filters = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"]
+
+[bmscriptsbox.triggers.shortcut]
+enabled = true
+input_type = "files"
+filters = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"]
+
+
+[[bmscriptsbox.inputs]]
+name = "target_paths"
+label = "图片"
+type = "list"
+exts = [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"]
+description = "要添加圆角的图片文件"
+
+
+[[bmscriptsbox.outputs]]
+name = "files"
+type = "list"
+description = "处理成功后的输出文件路径列表"
+
+[[bmscriptsbox.outputs]]
+name = "count"
+type = "str"
+description = "成功处理的数量"
+
+
+[[bmscriptsbox.params]]
+name = "radius"
+label = "圆角半径"
+type = "int"
+default = 12
+required = false
+description = "圆角半径（px），0 表示不加圆角；超过图片短边一半时按最大值处理"
+
+[[bmscriptsbox.params]]
+name = "output_dir"
+label = "输出目录"
+type = "str"
+default = ""
+required = false
+description = "输出目录；留空则输出到各图片源目录"
+
+[[bmscriptsbox.params]]
+name = "suffix"
+label = "文件名后缀"
+type = "str"
+default = "_rounded"
+required = false
+description = "输出文件名后缀，如 _rounded"
+
+
+[bmscriptsbox.node]
+enabled = true

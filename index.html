@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片加圆角 — Image Round Studio</title>
+<link rel="icon" href="imgs/logo.png">
+<style>
+/* =========================================================
+   Design Tokens — Precision Tool
+   ========================================================= */
+:root {
+  --bg: #F4F5F7;
+  --surface: #FFFFFF;
+  --surface-2: #FAFBFC;
+  --surface-3: #EEF0F4;
+  --ink-1: #16181D;
+  --ink-2: #565C68;
+  --ink-3: #8A909C;
+  --line: rgba(16,20,30,0.08);
+  --line-strong: rgba(16,20,30,0.14);
+
+  --accent: #2E6BFF;
+  --accent-hover: #1F57E6;
+  --accent-soft: rgba(46,107,255,0.10);
+  --accent-grad: linear-gradient(180deg, #3D77FF, #2E6BFF);
+  --accent-glow: rgba(46,107,255,0.30);
+
+  --success: #12A150;
+  --danger: #E5484D;
+
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-pill: 999px;
+
+  --shadow-xs: 0 1px 2px rgba(16,20,30,0.05);
+  --shadow-sm: 0 1px 3px rgba(16,20,30,0.08), 0 1px 2px rgba(16,20,30,0.04);
+  --shadow-md: 0 6px 18px rgba(16,20,30,0.10), 0 2px 6px rgba(16,20,30,0.05);
+  --shadow-lg: 0 24px 56px rgba(16,20,30,0.18);
+  --ring: 0 0 0 3px var(--accent-glow);
+
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-1: 120ms;
+  --dur-2: 180ms;
+  --dur-3: 260ms;
+
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: -0.12px;
+  line-height: 1.45;
+  color: var(--ink-1);
+  background:
+    radial-gradient(1100px 520px at 100% -12%, rgba(46,107,255,0.07), transparent 60%),
+    radial-gradient(820px 460px at -12% 112%, rgba(120,92,255,0.055), transparent 55%),
+    var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  height: 52px;
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+  z-index: 20;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-sm);
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #FFFFFF, #EFF3FA);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-xs), inset 0 1px 0 rgba(255,255,255,0.9);
+}
+.brand-mark img { width: 19px; height: 19px; border-radius: 5px; display: block; }
+.brand-title { display: flex; flex-direction: column; }
+.brand-title h1 { font-size: 13.5px; font-weight: 650; letter-spacing: -0.2px; line-height: 1.2; }
+.brand-title span { font-size: 10px; font-weight: 500; letter-spacing: 0.3px; text-transform: uppercase; color: var(--ink-3); }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  border-radius: var(--r-sm);
+  height: 30px;
+  padding: 0 13px;
+  transition: background var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), transform var(--dur-1) var(--ease-out);
+  outline: none;
+  white-space: nowrap;
+}
+.btn:focus-visible { box-shadow: var(--ring); }
+.btn:disabled { opacity: 0.45; cursor: default; pointer-events: none; }
+
+.btn-primary { background: var(--accent-grad); color: #fff; box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.18); }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.18); }
+.btn-primary:active:not(:disabled) { transform: translateY(0) scale(0.98); filter: brightness(0.97); }
+
+.btn-secondary { background: var(--surface); color: var(--ink-1); border-color: var(--line-strong); box-shadow: var(--shadow-xs); }
+.btn-secondary:hover:not(:disabled) { background: var(--surface-2); border-color: rgba(16,20,30,0.22); }
+
+.btn-ghost { background: transparent; color: var(--ink-2); }
+.btn-ghost:hover:not(:disabled) { background: var(--surface-3); color: var(--ink-1); }
+
+.mini-btn {
+  height: 28px;
+  padding: 0 10px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  outline: none;
+  transition: background var(--dur-1) var(--ease-out), border-color var(--dur-1) var(--ease-out), color var(--dur-1) var(--ease-out);
+}
+.mini-btn:hover { background: var(--surface-2); border-color: rgba(16,20,30,0.22); color: var(--ink-1); }
+.mini-btn:focus-visible { box-shadow: var(--ring); }
+
+/* Layout */
+.layout { display: flex; flex: 1; overflow: hidden; }
+
+.sidebar {
+  width: 244px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  flex-shrink: 0;
+  z-index: 10;
+}
+.sidebar-group { display: flex; flex-direction: column; gap: 8px; }
+.panel-head { display: flex; align-items: center; justify-content: space-between; }
+.panel-label { font-size: 10px; font-weight: 650; letter-spacing: 0.6px; text-transform: uppercase; color: var(--ink-3); }
+.value {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  background: var(--accent-soft);
+  border-radius: var(--r-pill);
+  padding: 1px 8px;
+}
+
+/* Text input */
+.text-input {
+  width: 100%;
+  height: 30px;
+  padding: 0 10px;
+  font-family: var(--font);
+  font-size: 11.5px;
+  letter-spacing: -0.1px;
+  color: var(--ink-1);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  outline: none;
+  transition: border-color var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), background-color var(--dur-1) var(--ease-out);
+}
+.text-input::placeholder { color: var(--ink-3); }
+.text-input:hover { border-color: var(--line-strong); }
+.text-input:focus-visible { border-color: var(--accent); background: var(--surface); box-shadow: var(--ring); }
+.input-row { display: flex; gap: 6px; }
+.input-row .text-input { flex: 1; min-width: 0; }
+
+/* Range slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  --fill: 6%;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--accent) var(--fill), var(--surface-3) var(--fill));
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  margin-top: -5.5px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid rgba(16,20,30,0.14);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--dur-1) var(--ease-spring), box-shadow var(--dur-1) var(--ease-out);
+}
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.14); }
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.02); }
+input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: var(--shadow-sm), 0 0 0 3px var(--accent-glow); }
+
+.divider { height: 1px; background: var(--line); margin: 0; border: 0; }
+
+/* Execute */
+.execute {
+  width: 100%;
+  height: 38px;
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--accent-grad);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  outline: none;
+  box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.2);
+  transition: transform var(--dur-1) var(--ease-out), filter var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+.execute:hover:not(:disabled) { filter: brightness(1.06); transform: translateY(-1px); }
+.execute:active:not(:disabled) { transform: translateY(0) scale(0.985); filter: brightness(0.97); }
+.execute:focus-visible { box-shadow: var(--shadow-md), var(--ring); }
+.execute:disabled { opacity: 0.5; cursor: default; box-shadow: none; }
+
+.status { font-size: 11px; letter-spacing: -0.1px; color: var(--ink-3); min-height: 15px; line-height: 1.4; }
+.status.error { color: var(--danger); }
+.status.success { color: var(--success); }
+
+.sidebar-hint {
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: -0.1px;
+  color: var(--ink-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 10px 11px;
+}
+.sidebar-hint p { font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
+.sidebar-hint ol { list-style: none; counter-reset: hint; padding: 0; display: flex; flex-direction: column; gap: 3px; }
+.sidebar-hint li { position: relative; padding-left: 15px; font-size: 10.5px; color: var(--ink-3); counter-increment: hint; }
+.sidebar-hint li::before {
+  content: counter(hint);
+  position: absolute;
+  left: 0;
+  top: 0.5px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 8px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+/* Main preview */
+.main { flex: 1; display: flex; flex-direction: column; padding: 14px 16px; gap: 11px; overflow: hidden; min-width: 0; }
+.toolbar { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.toolbar .count {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-2);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 3px 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; flex-shrink: 0; }
+.thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: 58px;
+  height: 58px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--dur-2) var(--ease-out), border-color var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+.thumb:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.thumb.active { border-color: transparent; box-shadow: 0 0 0 2px var(--accent), var(--shadow-md); }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb .remove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(22,24,29,0.62);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-spring), background var(--dur-1) var(--ease-out);
+}
+.thumb:hover .remove, .thumb.active .remove { opacity: 1; transform: scale(1); }
+.thumb .remove:hover { background: var(--danger); }
+
+.drop-zone {
+  flex: 1;
+  background: var(--surface);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--r-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  min-height: 130px;
+  position: relative;
+  transition: border-color var(--dur-2) var(--ease-out), background var(--dur-2) var(--ease-out), box-shadow var(--dur-2) var(--ease-out);
+}
+.drop-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent), 0 0 0 4px var(--accent-glow);
+}
+
+.placeholder { text-align: center; color: var(--ink-3); padding: 20px; }
+.placeholder-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 12px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #FFFFFF, #EEF2FA);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255,255,255,0.9);
+  color: var(--accent);
+}
+.placeholder-icon svg { width: 24px; height: 24px; }
+.placeholder-title { font-size: 13px; font-weight: 600; color: var(--ink-1); margin-bottom: 3px; }
+.placeholder-sub { font-size: 11px; letter-spacing: -0.1px; color: var(--ink-3); }
+
+canvas {
+  max-width: calc(100% - 32px);
+  max-height: calc(100% - 32px);
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  border-radius: var(--r-xs);
+}
+canvas:not(.hidden) {
+  box-shadow: var(--shadow-lg);
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(45deg, #E7EAF0 25%, transparent 25%),
+    linear-gradient(-45deg, #E7EAF0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #E7EAF0 75%),
+    linear-gradient(-45deg, transparent 75%, #E7EAF0 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+.hidden { display: none !important; }
+
+#toast {
+  position: fixed;
+  bottom: 18px;
+  left: 50%;
+  transform: translate(-50%, 10px);
+  padding: 9px 18px;
+  border-radius: var(--r-pill);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+  z-index: 999;
+  transition: opacity var(--dur-3) var(--ease-out), transform var(--dur-3) var(--ease-spring);
+  opacity: 0;
+  pointer-events: none;
+  max-width: 82%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast.success { background: linear-gradient(180deg, #1FAE5B, #12A150); }
+#toast.error { background: linear-gradient(180deg, #EE5B60, #E5484D); }
+
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(16,20,30,0.14); border-radius: var(--r-pill); border: 2px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: rgba(16,20,30,0.26); background-clip: content-box; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+.sidebar-group, .sidebar > .divider, .execute, .status, .sidebar-hint, .toolbar, .thumbs, .drop-zone {
+  animation: rise var(--dur-3) var(--ease-out) both;
+}
+.sidebar-group:nth-child(1) { animation-delay: 0.02s; }
+.sidebar-group:nth-child(2) { animation-delay: 0.06s; }
+.toolbar { animation-delay: 0.10s; }
+.drop-zone { animation-delay: 0.16s; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-delay: 0ms !important; transition-duration: 0.001ms !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark"><img src="imgs/logo.png" alt="图片加圆角图标"></span>
+    <div class="brand-title">
+      <h1>图片加圆角</h1>
+      <span>Image Round Studio</span>
+    </div>
+  </div>
+  <div class="topbar-actions">
+    <button type="button" class="btn btn-ghost" id="clearBtn" disabled>清空</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <section class="sidebar-group">
+      <div class="panel-head">
+        <p class="panel-label">圆角半径</p>
+        <span class="value" id="radiusValue">12px</span>
+      </div>
+      <input type="range" id="radius" min="0" max="200" value="12" aria-label="圆角半径">
+    </section>
+
+    <hr class="divider">
+
+    <section class="sidebar-group">
+      <p class="panel-label">输出目录</p>
+      <div class="input-row">
+        <input type="text" id="outputPath" class="text-input" placeholder="留空则输出到源目录" spellcheck="false" autocomplete="off">
+        <button type="button" class="mini-btn" id="browseOutputBtn">浏览</button>
+      </div>
+    </section>
+
+    <section class="sidebar-group">
+      <p class="panel-label">文件名后缀</p>
+      <input type="text" id="suffix" class="text-input" value="_rounded" placeholder="_rounded" spellcheck="false" autocomplete="off">
+    </section>
+
+    <hr class="divider">
+
+    <button type="button" class="execute" id="executeBtn">确定添加圆角</button>
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+
+    <hr class="divider">
+
+    <div class="sidebar-hint">
+      <p>添加多张图片后点「确定添加圆角」</p>
+      <ol>
+        <li>输出目录留空 → 保存到各图源目录</li>
+        <li>拖拽的图片无源目录，需先设输出目录</li>
+      </ol>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="toolbar">
+      <button type="button" class="btn btn-primary" id="addBtn">添加图片</button>
+      <button type="button" class="btn btn-secondary" id="pickFileBtn">选择图片</button>
+      <span class="count" id="count">共 0 张</span>
+      <input type="file" id="fileInput" accept="image/*" multiple class="hidden">
+    </div>
+
+    <div class="thumbs hidden" id="thumbs"></div>
+
+    <div class="drop-zone" id="dropZone">
+      <div class="placeholder" id="placeholder">
+        <span class="placeholder-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 8a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Z"></path>
+            <circle cx="9" cy="9" r="1.4"></circle>
+            <path d="m20 15-3.6-3.6a1.8 1.8 0 0 0-2.6 0L6 19"></path>
+          </svg>
+        </span>
+        <p class="placeholder-title">拖放图片到此处</p>
+        <p class="placeholder-sub">或点击「添加图片」「选择图片」</p>
+      </div>
+      <canvas id="canvas" class="hidden"></canvas>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+
+const MAX_RADIUS = 200;
+const DEFAULT_RADIUS = 12;
+const TOAST_DURATION = 2500;
+const CLOSE_DELAY = 900;
+const IMAGE_TYPE_PREFIX = 'image/';
+const IMAGE_ENDPOINT = '/api/image/';
+
+let images = [];
+let selectedId = null;
+let originalImage = null;
+let isBusy = false;
+
+const $ = (id) => document.getElementById(id);
+
+const canvas = $('canvas');
+const ctx = canvas.getContext('2d');
+const dropZone = $('dropZone');
+const placeholder = $('placeholder');
+const toast = $('toast');
+const thumbsEl = $('thumbs');
+const countEl = $('count');
+const radiusEl = $('radius');
+const radiusValue = $('radiusValue');
+const outputPathEl = $('outputPath');
+const suffixEl = $('suffix');
+const executeBtn = $('executeBtn');
+const clearBtn = $('clearBtn');
+const statusEl = $('status');
+
+const updateRangeFill = (el) => {
+  const min = Number(el.min) || 0;
+  const max = Number(el.max) || 100;
+  const val = Number(el.value);
+  const pct = max === min ? 0 : ((val - min) / (max - min)) * 100;
+  el.style.setProperty('--fill', pct.toFixed(1) + '%');
+};
+
+radiusEl.addEventListener('input', () => {
+  updateRangeFill(radiusEl);
+  updatePreview();
+});
+
+$('addBtn').addEventListener('click', addImagesDialog);
+$('pickFileBtn').addEventListener('click', () => $('fileInput').click());
+$('fileInput').addEventListener('change', () => {
+  uploadFiles($('fileInput').files);
+  $('fileInput').value = '';
+});
+$('browseOutputBtn').addEventListener('click', browseOutput);
+clearBtn.addEventListener('click', clearAll);
+executeBtn.addEventListener('click', execute);
+
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('drag-over');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  uploadFiles(e.dataTransfer.files);
+});
+
+const showToast = (msg, type) => {
+  toast.textContent = msg;
+  toast.className = 'show ' + (type === 'error' ? 'error' : 'success');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), TOAST_DURATION);
+};
+
+const setStatus = (msg, type) => {
+  statusEl.textContent = msg || '';
+  statusEl.className = 'status' + (type ? ' ' + type : '');
+};
+
+const setBusy = (value) => {
+  isBusy = value;
+  const disabled = value || images.length === 0;
+  executeBtn.disabled = disabled;
+  clearBtn.disabled = disabled;
+  executeBtn.textContent = value ? '处理中...' : '确定添加圆角';
+};
+
+// ---- image list ----
+async function refreshImages() {
+  try {
+    const res = await fetch('/api/images');
+    const data = await res.json();
+    images = data.images || [];
+  } catch {
+    images = [];
+  }
+  if (!images.some((i) => i.id === selectedId)) {
+    selectedId = images.length ? images[0].id : null;
+  }
+  renderThumbs();
+  countEl.textContent = '共 ' + images.length + ' 张';
+  setBusy(isBusy);
+  await loadSelected();
+}
+
+function renderThumbs() {
+  thumbsEl.innerHTML = '';
+  thumbsEl.classList.toggle('hidden', images.length === 0);
+  images.forEach((img) => {
+    const el = document.createElement('div');
+    el.className = 'thumb' + (img.id === selectedId ? ' active' : '');
+    el.title = img.path || img.name;
+    const im = document.createElement('img');
+    im.src = IMAGE_ENDPOINT + img.id;
+    im.alt = img.name;
+    el.appendChild(im);
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'remove';
+    rm.textContent = '×';
+    rm.title = '移除';
+    rm.setAttribute('aria-label', '移除 ' + img.name);
+    rm.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      removeImage(img.id);
+    });
+    el.appendChild(rm);
+    el.addEventListener('click', () => {
+      if (isBusy) return;
+      selectedId = img.id;
+      renderThumbs();
+      loadSelected();
+    });
+    thumbsEl.appendChild(el);
+  });
+}
+
+function loadSelected() {
+  const item = images.find((i) => i.id === selectedId);
+  if (!item) {
+    originalImage = null;
+    placeholder.classList.remove('hidden');
+    canvas.classList.add('hidden');
+    return;
+  }
+  const im = new Image();
+  im.addEventListener('load', () => {
+    originalImage = im;
+    placeholder.classList.add('hidden');
+    canvas.classList.remove('hidden');
+    updatePreview();
+  });
+  im.addEventListener('error', () => showToast('图片加载失败', 'error'));
+  im.src = IMAGE_ENDPOINT + item.id;
+}
+
+async function addImagesDialog() {
+  if (isBusy) return;
+  setStatus('选择图片中...');
+  try {
+    const res = await fetch('/api/images/pick', { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+      await refreshImages();
+      setStatus('');
+    } else {
+      setStatus(data.error || '添加失败', 'error');
+    }
+  } catch (e) {
+    setStatus(e.message, 'error');
+  }
+}
+
+async function uploadFiles(fileList) {
+  if (isBusy || !fileList || !fileList.length) return;
+  for (const file of Array.from(fileList)) {
+    if (!file.type.startsWith(IMAGE_TYPE_PREFIX)) continue;
+    try {
+      await fetch('/api/images/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream', 'X-Filename': encodeURIComponent(file.name) },
+        body: await file.arrayBuffer(),
+      });
+    } catch {}
+  }
+  await refreshImages();
+}
+
+async function removeImage(id) {
+  if (isBusy) return;
+  try { await fetch(IMAGE_ENDPOINT + id, { method: 'DELETE' }); } catch {}
+  await refreshImages();
+}
+
+async function clearAll() {
+  if (isBusy || !images.length) return;
+  try { await fetch('/api/images', { method: 'DELETE' }); } catch {}
+  await refreshImages();
+}
+
+async function browseOutput() {
+  if (isBusy) return;
+  setStatus('选择目录中...');
+  try {
+    const res = await fetch('/api/output/pick', { method: 'POST' });
+    const data = await res.json();
+    if (data.ok && data.path) outputPathEl.value = data.path;
+    setStatus('');
+  } catch (e) {
+    setStatus(e.message, 'error');
+  }
+}
+
+// ---- preview ----
+function roundRectPath(c, x, y, w, h, r) {
+  c.beginPath();
+  c.moveTo(x + r, y);
+  c.arcTo(x + w, y, x + w, y + h, r);
+  c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r);
+  c.arcTo(x, y, x + w, y, r);
+  c.closePath();
+}
+
+function updatePreview() {
+  if (!originalImage) return;
+  const radius = parseInt(radiusEl.value, 10) || 0;
+  radiusValue.textContent = radius + 'px';
+  const w = originalImage.width;
+  const h = originalImage.height;
+  const r = Math.max(0, Math.min(radius, Math.floor(Math.min(w, h) / 2)));
+  canvas.width = w;
+  canvas.height = h;
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  roundRectPath(ctx, 0, 0, w, h, r);
+  ctx.clip();
+  ctx.drawImage(originalImage, 0, 0);
+  ctx.restore();
+}
+
+function collectConfig() {
+  return {
+    radius: parseInt(radiusEl.value, 10),
+    outputPath: outputPathEl.value.trim(),
+    suffix: suffixEl.value,
+  };
+}
+
+// ---- execute ----
+async function execute() {
+  if (isBusy) return;
+  if (!images.length) {
+    showToast('请先添加图片', 'error');
+    return;
+  }
+  const config = collectConfig();
+  setBusy(true);
+  setStatus('准备中...');
+
+  try {
+    await fetch('/api/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config),
+    });
+  } catch {}
+
+  const failures = [];
+  const total = images.length;
+  for (let i = 0; i < total; i++) {
+    setStatus('处理中 ' + (i + 1) + '/' + total + '...');
+    try {
+      const res = await fetch('/api/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: images[i].id, config }),
+      });
+      const result = await res.json();
+      if (!result.ok) failures.push({ name: images[i].name, error: result.error || '失败' });
+    } catch (e) {
+      failures.push({ name: images[i].name, error: e.message });
+    }
+  }
+
+  if (failures.length === 0) {
+    setStatus('');
+    setBusy(false);
+    showToast('已输出 ' + total + ' 张', 'success');
+    setTimeout(closeWindow, CLOSE_DELAY);
+  } else {
+    setBusy(false);
+    setStatus('完成：' + (total - failures.length) + '/' + total + ' 成功', 'error');
+    showToast(failures.length + ' 张失败：' + failures[0].error, 'error');
+  }
+}
+
+function closeWindow() {
+  try {
+    if (window.webview && typeof window.webview.resolve === 'function') {
+      window.webview.resolve({ ok: true });
+      return;
+    }
+  } catch {}
+  try { window.close(); } catch {}
+}
+
+// ---- config ----
+async function loadConfigFromServer() {
+  try {
+    const resp = await fetch('/api/config');
+    const cfg = await resp.json();
+    if (!cfg) return;
+    radiusEl.value = cfg.radius != null ? cfg.radius : DEFAULT_RADIUS;
+    outputPathEl.value = cfg.outputPath || '';
+    suffixEl.value = cfg.suffix != null ? cfg.suffix : '_rounded';
+    radiusValue.textContent = radiusEl.value + 'px';
+    updateRangeFill(radiusEl);
+    updatePreview();
+  } catch {}
+}
+
+// ---- init ----
+radiusEl.max = String(MAX_RADIUS);
+radiusEl.value = String(DEFAULT_RADIUS);
+updateRangeFill(radiusEl);
+setBusy(false);
+loadConfigFromServer();
+refreshImages();
+</script>
+</body>
+</html>
