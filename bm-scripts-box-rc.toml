@@ -1,10 +1,10 @@
 [bmscriptsbox]
 
 [bmscriptsbox.info]
-id = "7f9b3c2d-1e5a-4b8c-9d0e-6f1a7b2c3d4e"
+id = "1bf67ec8-af7e-4ee7-b105-5954a7bb0de6"
 name = "图片加圆角"
 desc = "图片批量加圆角 | 抗锯齿圆角、半径可调、实时预览、多图批量、输出目录与文件名后缀可配置 | 支持右键/快捷键/卡片触发，可被其他脚本联动调用，一键批量输出到指定目录或源图片目录"
-version = "1.4.0"
+version = "1.5.0"
 icon = "./imgs/logo.png"
 
 [bmscriptsbox.runtime]
